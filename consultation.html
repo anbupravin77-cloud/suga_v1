@@ -29,11 +29,33 @@
   .pg-layout--done { grid-template-columns: minmax(0, 1fr); }
   .pg-sidebar { position: sticky; top: 92px; }
   .pg-sb-note { margin: 18px auto 0; display: block; text-align: center; }
-  .pg-step-h { font-size: 1.3rem; margin-bottom: 8px; display: flex; align-items: baseline; gap: 12px; }
-  .pg-step-h .n { font-size: .78rem; font-weight: 700; letter-spacing: .12em; color: var(--pen); flex: 0 0 auto; }
-  .pg-step-sub { color: var(--ink-soft); font-size: .95rem; margin-bottom: 22px; }
-  .pg-sec + .pg-sec { margin-top: 34px; padding-top: 30px; border-top: 1.5px solid var(--rule); }
-  .pg-submit-row { margin-top: 34px; padding-top: 26px; border-top: 1.5px solid var(--rule); }
+  .pg-step-h { font-size: 1.18rem; margin-bottom: 4px; display: flex; align-items: baseline; gap: 10px; }
+  .pg-step-h .n { font-size: .74rem; font-weight: 700; letter-spacing: .12em; color: var(--pen); flex: 0 0 auto; }
+  .pg-step-sub { color: var(--ink-soft); font-size: .88rem; margin-bottom: 14px; }
+  .pg-sec + .pg-sec { margin-top: 22px; padding-top: 20px; border-top: 1.5px solid var(--rule); }
+  .pg-submit-row { margin-top: 24px; padding-top: 20px; border-top: 1.5px solid var(--rule); }
+
+  /* compact form density */
+  .pg-layout .field { margin-bottom: 14px; }
+  .pg-layout .label { margin-bottom: 5px; }
+  .pg-layout .hint { font-size: .8rem; margin-top: 4px; }
+  .pg-layout .input { padding: 10px 13px; }
+  .pg-narrow { max-width: 180px; }
+
+  /* one-line question: text left, Yes/No right */
+  .pg-q { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: center;
+          padding: 9px 0; margin: 0; border-bottom: 1px dashed var(--rule); }
+  .pg-q .label { margin: 0; font-size: .93rem; font-weight: 500; text-transform: none;
+                 letter-spacing: 0; color: var(--ink); line-height: 1.35; }
+  .pg-q .seg { padding: 3px; flex: 0 0 auto; }
+  .pg-q .seg button { padding: 6px 15px; font-size: .88rem; }
+  .pg-q .err-msg, .pg-q .hint { grid-column: 1 / -1; margin: 2px 0 0; }
+  .pg-qs { margin-bottom: 14px; border-bottom: 1px dashed var(--rule); }
+  .pg-qs .pg-q:last-child { border-bottom: none; }
+  /* keep the question on one line down to small phones — the label wraps,
+     the Yes/No stays on the right, which is still shorter than stacking */
+  @media (max-width: 560px) { .pg-q { gap: 6px 10px; } .pg-q .seg button { padding: 6px 11px; font-size: .85rem; } }
+  @media (max-width: 400px) { .pg-q { grid-template-columns: 1fr; } .pg-q .seg { width: fit-content; } }
   .pg-submit-row .btn { width: 100%; }
   .pg-submit-note { text-align: center; margin: 12px 0 0; }
   .pg-opt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 4px 0 10px; }
@@ -42,8 +64,8 @@
   .pg-opt-tx .t { display: block; font-size: .9rem; line-height: 1.2; }
   .pg-opt-tx .d { display: none; }
   .pg-note { margin-top: 14px; }
-  .pg-about { margin-top: 26px; padding-top: 24px; border-top: 1px solid var(--rule); }
-  .pg-sub-h { font-family: var(--font-display); font-weight: 800; font-size: 1.08rem; margin: 0 0 16px; }
+  .pg-about { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--rule); }
+  .pg-sub-h { font-family: var(--font-display); font-weight: 800; font-size: 1rem; margin: 0 0 10px; }
   .pg-check { display: flex; align-items: center; gap: 10px; font-size: .95rem; color: var(--ink-soft); margin-top: 12px; cursor: pointer; }
   .pg-check input { width: 18px; height: 18px; accent-color: var(--pen); flex: 0 0 auto; cursor: pointer; }
   .pg-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -51,6 +73,9 @@
   .pg-callout-wrap { margin-top: 6px; }
   .pg-bmi-line { margin-bottom: 8px; }
   .pg-consent-tx .t, .pg-consent-tx .d { display: block; }
+  .pg-layout .consent { padding: 12px 14px; margin-bottom: 8px; }
+  .pg-consent-tx .t { font-size: .95rem; }
+  .pg-consent-tx .d { font-size: .82rem; line-height: 1.4; }
   .pg-seg-field { margin-bottom: 22px; }
   .chart-row .v.pg-empty { color: var(--ink-faint); font-family: var(--font-body); font-size: 1rem; font-weight: 500; }
   .pg-success { max-width: 660px; margin: 0 auto; text-align: center; padding: 12px 0; }
@@ -112,7 +137,7 @@
                 <!-- 1 -->
                 <section class="pg-sec" id="sec1" aria-labelledby="secH1">
                   <h2 class="pg-step-h" id="secH1"><span class="n">01</span> What brings you in today?</h2>
-                  <p class="pg-step-sub">Choose one. Your doctor will look at the whole picture.</p>
+                  <p class="pg-step-sub">Your doctor sees the whole picture either way.</p>
                   <div class="pg-opt-grid" role="group" aria-label="Reason for consultation">
                     <button type="button" class="opt-card" data-goal="weight-loss" aria-pressed="false">
                       <svg class="pg-opt-ic" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -150,24 +175,25 @@
                       <input class="input" id="inName" name="name" type="text" autocomplete="name" placeholder="As it appears on your ID">
                       <p class="err-msg" id="errName" hidden>Please enter your full name.</p>
                     </div>
-                    <div class="field">
-                      <label class="label" for="inEmail">Email <span class="req" aria-hidden="true">*</span></label>
-                      <input class="input" id="inEmail" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
-                      <p class="err-msg" id="errEmail" hidden></p>
-                      <p class="hint">Your doctor sends your plan here.</p>
+                    <div class="field-row">
+                      <div class="field">
+                        <label class="label" for="inEmail">Email <span class="req" aria-hidden="true">*</span></label>
+                        <input class="input" id="inEmail" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
+                        <p class="err-msg" id="errEmail" hidden></p>
+                      </div>
+                      <div class="field">
+                        <label class="label" for="inPhone">Phone <span class="req" aria-hidden="true">*</span></label>
+                        <input class="input" id="inPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+1 555 010 4477">
+                        <p class="err-msg" id="errPhone" hidden></p>
+                      </div>
                     </div>
-                    <div class="field">
-                      <label class="label" for="inPhone">Phone number <span class="req" aria-hidden="true">*</span></label>
-                      <input class="input" id="inPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="Include country code, e.g. +1 555 010 4477">
-                      <p class="err-msg" id="errPhone" hidden></p>
-                      <p class="hint">Used only if your doctor needs to reach you about your care.</p>
-                    </div>
-                    <div class="field">
+                    <p class="hint" style="margin:-8px 0 14px">Your doctor sends your plan to your email, and only calls if something needs checking.</p>
+                    <div class="field pg-narrow">
                       <label class="label" for="inAge">Age <span class="req" aria-hidden="true">*</span></label>
                       <input class="input" id="inAge" name="age" type="number" inputmode="numeric" min="18" max="100" placeholder="Years">
                       <p class="err-msg" id="errAge" hidden></p>
                     </div>
-                    <div class="field pg-seg-field">
+                    <div class="pg-q">
                       <span class="label" id="sexLabel">Sex at birth <span class="req" aria-hidden="true">*</span></span>
                       <div class="seg" role="group" aria-labelledby="sexLabel">
                         <button type="button" data-sex="Female" aria-pressed="false">Female</button>
@@ -175,15 +201,14 @@
                         <button type="button" data-sex="Other" aria-pressed="false">Other</button>
                       </div>
                       <p class="err-msg" id="errSex" hidden>Please choose an option.</p>
-                      <p class="hint">Your doctor needs this to prescribe safely &mdash; some medicines work differently depending on it.</p>
                     </div>
                     <div class="field" id="sexOtherField" hidden>
                       <label class="label" for="inSexOther">How do you describe your sex? <span class="small" style="text-transform:none;letter-spacing:0">(optional)</span></label>
                       <input class="input" id="inSexOther" name="sexOther" type="text" placeholder="In your own words">
                     </div>
 
-                    <div id="femaleBlock" hidden>
-                      <div class="field pg-seg-field">
+                    <div id="femaleBlock" class="pg-qs" hidden>
+                      <div class="pg-q">
                         <span class="label" id="lblMarried">Are you married? <span class="req" aria-hidden="true">*</span></span>
                         <div class="seg" role="group" aria-labelledby="lblMarried">
                           <button type="button" data-scr="married" data-val="yes" aria-pressed="false">Yes</button>
@@ -191,34 +216,33 @@
                         </div>
                         <p class="err-msg" id="errMarried" hidden>Please answer this question.</p>
                       </div>
-                      <div class="field pg-seg-field">
-                        <span class="label" id="lblOcp">Are you using contraception with the pill (OCP)? <span class="req" aria-hidden="true">*</span></span>
+                      <div class="pg-q">
+                        <span class="label" id="lblOcp">On the contraceptive pill (OCP)? <span class="req" aria-hidden="true">*</span></span>
                         <div class="seg" role="group" aria-labelledby="lblOcp">
                           <button type="button" data-scr="onOCP" data-val="yes" aria-pressed="false">Yes</button>
                           <button type="button" data-scr="onOCP" data-val="no" aria-pressed="false">No</button>
                         </div>
                         <p class="err-msg" id="errOnOCP" hidden>Please answer this question.</p>
                       </div>
-                      <div class="field pg-seg-field">
-                        <span class="label" id="lblPreg">Are you pregnant, or trying to become pregnant? <span class="req" aria-hidden="true">*</span></span>
+                      <div class="pg-q">
+                        <span class="label" id="lblPreg">Pregnant, or trying to be? <span class="req" aria-hidden="true">*</span></span>
                         <div class="seg" role="group" aria-labelledby="lblPreg">
                           <button type="button" data-scr="pregnant" data-val="yes" aria-pressed="false">Yes</button>
                           <button type="button" data-scr="pregnant" data-val="no" aria-pressed="false">No</button>
                         </div>
                         <p class="err-msg" id="errPregnant" hidden>Please answer this question.</p>
-                        <p class="hint">This treatment is not given during pregnancy, so your doctor needs to know.</p>
                       </div>
                     </div>
                   </div>
 
-                  <p class="small pg-note">All three start with the same consultation &mdash; your doctor tailors everything after this.</p>
+                  
                 </section>
 
                 <!-- 2 -->
                 <section class="pg-sec" id="sec2" aria-labelledby="secH2">
                   <h2 class="pg-step-h" id="secH2"><span class="n">02</span> Your body</h2>
-                  <p class="pg-step-sub">Height and weight let your doctor calculate safe starting doses.</p>
-                  <div class="field pg-seg-field">
+                  <p class="pg-step-sub">Used to calculate safe starting doses.</p>
+                  <div class="pg-q">
                     <span class="label" id="unitsLabel">Units</span>
                     <div class="seg" role="group" aria-labelledby="unitsLabel">
                       <button type="button" data-units="metric" aria-pressed="true">Metric (cm, kg)</button>
@@ -257,28 +281,38 @@
                 <!-- 3 -->
                 <section class="pg-sec" id="sec3" aria-labelledby="secH3">
                   <h2 class="pg-step-h" id="secH3"><span class="n">03</span> Medical history</h2>
-                  <p class="pg-step-sub">This is where your doctor earns their keep &mdash; the more complete, the safer your plan.</p>
+                  <p class="pg-step-sub">The more complete, the safer your plan.</p>
 
-                  <div class="field pg-seg-field">
-                    <span class="label" id="lblAntiep">Are you taking any treatment for fits or epilepsy? <span class="req" aria-hidden="true">*</span></span>
-                    <div class="seg" role="group" aria-labelledby="lblAntiep">
-                      <button type="button" data-scr="antiepileptics" data-val="yes" aria-pressed="false">Yes</button>
-                      <button type="button" data-scr="antiepileptics" data-val="no" aria-pressed="false">No</button>
+                  <div class="pg-qs">
+                    <div class="pg-q">
+                      <span class="label" id="lblAntiep">Any treatment for fits or epilepsy? <span class="req" aria-hidden="true">*</span></span>
+                      <div class="seg" role="group" aria-labelledby="lblAntiep">
+                        <button type="button" data-scr="antiepileptics" data-val="yes" aria-pressed="false">Yes</button>
+                        <button type="button" data-scr="antiepileptics" data-val="no" aria-pressed="false">No</button>
+                      </div>
+                      <p class="err-msg" id="errAntiepileptics" hidden>Please answer this question.</p>
                     </div>
-                    <p class="err-msg" id="errAntiepileptics" hidden>Please answer this question.</p>
-                  </div>
-
-                  <div class="field pg-seg-field">
-                    <span class="label" id="lblPanc">Have you ever had pancreatitis, or recurrent abdominal pain? <span class="req" aria-hidden="true">*</span></span>
-                    <div class="seg" role="group" aria-labelledby="lblPanc">
-                      <button type="button" data-scr="pancreatitis" data-val="yes" aria-pressed="false">Yes</button>
-                      <button type="button" data-scr="pancreatitis" data-val="no" aria-pressed="false">No</button>
+                    <div class="pg-q">
+                      <span class="label" id="lblPanc">Ever had pancreatitis or recurrent abdominal pain? <span class="req" aria-hidden="true">*</span></span>
+                      <div class="seg" role="group" aria-labelledby="lblPanc">
+                        <button type="button" data-scr="pancreatitis" data-val="yes" aria-pressed="false">Yes</button>
+                        <button type="button" data-scr="pancreatitis" data-val="no" aria-pressed="false">No</button>
+                      </div>
+                      <p class="err-msg" id="errPancreatitis" hidden>Please answer this question.</p>
                     </div>
-                    <p class="err-msg" id="errPancreatitis" hidden>Please answer this question.</p>
+                    <div class="pg-q">
+                      <span class="label" id="lblMtc">Family history of medullary thyroid cancer? <span class="req" aria-hidden="true">*</span></span>
+                      <div class="seg" role="group" aria-labelledby="lblMtc">
+                        <button type="button" data-scr="familyMTC" data-val="yes" aria-pressed="false">Yes</button>
+                        <button type="button" data-scr="familyMTC" data-val="no" aria-pressed="false">No</button>
+                        <button type="button" data-scr="familyMTC" data-val="unknown" aria-pressed="false">Not sure</button>
+                      </div>
+                      <p class="err-msg" id="errFamilyMTC" hidden>Please answer this question.</p>
+                    </div>
                   </div>
 
                   <div class="field">
-                    <span class="label" id="lblComorbid">Do you have any of these? <span class="small" style="text-transform:none;letter-spacing:0">(select any that apply)</span></span>
+                    <span class="label" id="lblComorbid">Do you have any of these?</span>
                     <div class="pg-chips" role="group" aria-labelledby="lblComorbid" id="comorbidChips">
                       <button type="button" class="chip" data-comorbid="type2-diabetes" aria-pressed="false">Type 2 diabetes</button>
                       <button type="button" class="chip" data-comorbid="hypertension" aria-pressed="false">High blood pressure</button>
@@ -287,7 +321,7 @@
                   </div>
 
                   <div class="field" id="diabetesComplications" hidden>
-                    <span class="label" id="lblComplic">Has your diabetes affected any of these? <span class="small" style="text-transform:none;letter-spacing:0">(select any that apply)</span></span>
+                    <span class="label" id="lblComplic">Has diabetes affected any of these?</span>
                     <div class="pg-chips" role="group" aria-labelledby="lblComplic" id="complicChips">
                       <button type="button" class="chip" data-complic="kidney" aria-pressed="false">Kidney problems</button>
                       <button type="button" class="chip" data-complic="retinopathy" aria-pressed="false">Eyesight (retinopathy)</button>
@@ -296,32 +330,22 @@
                     </div>
                   </div>
 
-                  <div class="field pg-seg-field">
-                    <span class="label" id="lblMtc">Has anyone in your family had medullary thyroid cancer? <span class="req" aria-hidden="true">*</span></span>
-                    <div class="seg" role="group" aria-labelledby="lblMtc">
-                      <button type="button" data-scr="familyMTC" data-val="yes" aria-pressed="false">Yes</button>
-                      <button type="button" data-scr="familyMTC" data-val="no" aria-pressed="false">No</button>
-                      <button type="button" data-scr="familyMTC" data-val="unknown" aria-pressed="false">Not sure</button>
-                    </div>
-                    <p class="err-msg" id="errFamilyMTC" hidden>Please answer this question.</p>
-                  </div>
-
                   <div class="field">
                     <label class="label" for="condInput">Current medical conditions</label>
                     <div class="tagbox">
-                      <input class="input" id="condInput" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="condPanel" aria-autocomplete="list" placeholder="Start typing &mdash; e.g. diabetes, thyroid, PCOS">
+                      <input class="input" id="condInput" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="condPanel" aria-autocomplete="list" placeholder="Start typing — e.g. diabetes, thyroid">
                       <div class="ac-panel" id="condPanel" role="listbox" aria-label="Condition suggestions" hidden></div>
                     </div>
                     <ul class="tag-list" id="condTags" aria-label="Selected conditions"></ul>
-                    <p class="hint" id="condNudge" hidden>Nothing to add? Tick the box below so your doctor knows.</p>
+                    <p class="hint" id="condNudge" hidden>Nothing to add? Tick the box below.</p>
                     <label class="pg-check"><input type="checkbox" id="noConditions"> No current medical conditions</label>
                   </div>
                   <div class="field">
                     <label class="label" for="inSurgical">Surgical history <span class="small" style="text-transform:none;letter-spacing:0">(optional)</span></label>
-                    <textarea class="input" id="inSurgical" name="surgical" rows="3" placeholder="e.g. Appendix removal (2015), C-section (2019) &mdash; or leave blank"></textarea>
+                    <textarea class="input" id="inSurgical" name="surgical" rows="2" placeholder="e.g. Appendix removal (2015) — or leave blank"></textarea>
                   </div>
                   <div class="field">
-                    <span class="label" id="famLabel">Family history <span class="small" style="text-transform:none;letter-spacing:0">(select any that apply)</span></span>
+                    <span class="label" id="famLabel">Family history</span>
                     <div class="pg-chips" role="group" aria-labelledby="famLabel" id="famChips">
                       <button type="button" class="chip" data-fam="Diabetes" aria-pressed="false">Diabetes</button>
                       <button type="button" class="chip" data-fam="Heart disease" aria-pressed="false">Heart disease</button>
@@ -336,7 +360,7 @@
                     </div>
                   </div>
                   <div class="field">
-                    <label class="label" for="inFamDetail">Anything to add about family history? <span class="small" style="text-transform:none;letter-spacing:0">(optional)</span></label>
+                    <label class="label" for="inFamDetail">Family history notes <span class="small" style="text-transform:none;letter-spacing:0">(optional)</span></label>
                     <textarea class="input" id="inFamDetail" name="famDetail" rows="2" placeholder="e.g. Father had a heart attack at 52"></textarea>
                   </div>
                 </section>
@@ -344,7 +368,7 @@
                 <!-- 4 -->
                 <section class="pg-sec" id="sec4" aria-labelledby="secH4">
                   <h2 class="pg-step-h" id="secH4"><span class="n">04</span> Medications &amp; allergies</h2>
-                  <p class="pg-step-sub">Include supplements and anything over the counter &mdash; interactions matter.</p>
+                  <p class="pg-step-sub">Include supplements and anything over the counter.</p>
                   <div class="field">
                     <label class="label" for="medInput">Current medications</label>
                     <div class="tagbox">
@@ -361,35 +385,35 @@
                       <div class="ac-panel" id="algPanel" role="listbox" aria-label="Allergy suggestions" hidden></div>
                     </div>
                     <ul class="tag-list" id="algTags" aria-label="Selected allergies"></ul>
-                    <p class="hint">Medicines, foods, anything &mdash; your doctor checks every prescription against this list.</p>
+                    <p class="hint">Checked against every prescription.</p>
                   </div>
                 </section>
 
                 <!-- 5 -->
                 <section class="pg-sec" id="sec5" aria-labelledby="secH5">
                   <h2 class="pg-step-h" id="secH5"><span class="n">05</span> Last things</h2>
-                  <p class="pg-step-sub">One honest note, three boxes, and it goes to your doctor.</p>
+                  <p class="pg-step-sub">One note, three boxes, and it goes to your doctor.</p>
                   <div class="field">
                     <label class="label" for="inNotes">Anything else your doctor should know? <span class="small" style="text-transform:none;letter-spacing:0">(optional)</span></label>
-                    <textarea class="input" id="inNotes" name="notes" rows="4" placeholder="Sleep, stress, past attempts, worries &mdash; anything you&rsquo;d tell a doctor behind a closed door"></textarea>
+                    <textarea class="input" id="inNotes" name="notes" rows="3" placeholder="Sleep, stress, past attempts, worries"></textarea>
                   </div>
                   <label class="consent">
                     <input type="checkbox" id="consent1">
-                    <span class="pg-consent-tx"><span class="t">My answers are accurate</span><span class="d">I confirm the information I provided is true and complete to the best of my knowledge.</span></span>
+                    <span class="pg-consent-tx"><span class="t">My answers are accurate</span><span class="d">True and complete to the best of my knowledge.</span></span>
                   </label>
                   <label class="consent">
                     <input type="checkbox" id="consent2">
-                    <span class="pg-consent-tx"><span class="t">I consent to telehealth care</span><span class="d">I understand my consultation will be reviewed remotely by a licensed physician who may contact me for more detail.</span></span>
+                    <span class="pg-consent-tx"><span class="t">I consent to telehealth care</span><span class="d">A licensed physician reviews this remotely and may contact me.</span></span>
                   </label>
                   <label class="consent">
                     <input type="checkbox" id="consent3">
-                    <span class="pg-consent-tx"><span class="t">I accept the privacy terms</span><span class="d">My health information is stored securely and shared only with my care team.</span></span>
+                    <span class="pg-consent-tx"><span class="t">I accept the privacy terms</span><span class="d">Stored securely, shared only with my care team.</span></span>
                   </label>
                 </section>
 
                 <div class="pg-submit-row">
                   <button type="button" class="btn btn--lg" id="btnSubmit" disabled>Send to my doctor</button>
-                  <p class="small pg-submit-note">A licensed physician reviews every consultation, usually within 24 hours.</p>
+                  <p class="small pg-submit-note">Reviewed by a licensed physician, usually within 24 hours.</p>
                 </div>
               </form>
             </div>
