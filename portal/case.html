@@ -246,6 +246,12 @@
     var i = c.intake || {};
     var out = '';
 
+    // AI clinical summary (on demand — never auto-run, never stored)
+    out += '<div class="pchart-section"><h3>At a glance</h3>' +
+      '<div id="aiSummary" class="ppg-muted ppg-small">Not generated.</div>' +
+      '<button type="button" class="btn btn--ghost" id="btnAiSummary" style="width:auto;margin-top:8px">Summarise with AI</button>' +
+      '</div>';
+
     // protocol screening result first — flags and exclusions outrank everything else
     out += screeningHtml(c);
 
@@ -379,7 +385,11 @@
       out += '<div class="ppg-muted">This case is closed without a plan. Reopen it before recording one.</div>';
     } else {
       out += '<textarea class="input" id="txtPlan" style="min-height:220px" aria-label="Plan for the patient"></textarea>' +
-        '<button type="button" class="btn" id="btnPlan">Record plan &amp; mark sent</button>';
+        '<div class="prx-actions">' +
+        '<button type="button" class="btn" id="btnPlan">Record plan &amp; mark sent</button>' +
+        '<button type="button" class="btn btn--ghost" style="width:auto" id="btnAiLetter">Draft with AI</button>' +
+        '</div>' +
+        '<div class="ppg-muted ppg-small">AI writes the wording only &mdash; the medicine and dose come from the protocol. Read and edit before saving.</div>';
     }
 
     // PRESCRIPTION (protocol step 6)
@@ -530,6 +540,35 @@
           .catch(function (e) { Portal.toast(e.message, true); refetch(); });
       });
     }
+
+    /* ---- AI drafting (prose only; never decides drug, dose or eligibility) ---- */
+    function aiDraft(kind, btn, onText) {
+      var label = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Drafting…';
+      Portal.api('/api/cases/' + encodeURIComponent(caseId) + '/ai-draft', { method: 'POST', body: { kind: kind } })
+        .then(function (d) {
+          onText(d.text);
+          (d.warnings || []).forEach(function (w) { Portal.toast(w, true); });
+          Portal.toast('AI draft ready — check it before saving');
+        })
+        .catch(function (e) { Portal.toast(e.message, true); })
+        .then(function () { btn.disabled = false; btn.textContent = label; });
+    }
+    if (el('btnAiSummary')) el('btnAiSummary').addEventListener('click', function () {
+      var box = el('aiSummary');
+      aiDraft('summary', this, function (text) {
+        box.className = 'ppg-pre';
+        box.textContent = text;
+        var tag = document.createElement('div');
+        tag.className = 'ppg-muted ppg-small';
+        tag.textContent = 'AI-generated summary — not a clinical assessment. Read the full chart below.';
+        box.appendChild(tag);
+      });
+    });
+    if (el('btnAiLetter')) el('btnAiLetter').addEventListener('click', function () {
+      var ta = el('txtPlan');
+      aiDraft('letter', this, function (text) { ta.value = text; planDraft = text; ta.focus(); });
+    });
 
     /* ---- prescription (protocol step 6) ---- */
     function rxAction(body, okMsg, confirmMsg) {

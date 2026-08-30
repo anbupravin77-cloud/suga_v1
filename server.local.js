@@ -30,6 +30,7 @@ const routes = [
   ['*',    /^\/api\/cases\/[^/]+\/plan$/, () => import('./lib/handlers/plan.js')],
   ['*',    /^\/api\/cases\/[^/]+\/prescription$/, () => import('./lib/handlers/prescription.js')],
   ['*',    /^\/api\/cases\/[^/]+\/review$/, () => import('./lib/handlers/review.js')],
+  ['*',    /^\/api\/cases\/[^/]+\/ai-draft$/, () => import('./lib/handlers/ai-draft.js')],
   ['*',    /^\/api\/protocol$/, () => import('./lib/handlers/protocol.js')],
   ['*',    /^\/api\/cases\/[^/]+$/, () => import('./lib/handlers/case-detail.js')],
   ['*',    /^\/api\/cases$/, () => import('./lib/handlers/cases.js')],
