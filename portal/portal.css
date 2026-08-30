@@ -87,6 +87,32 @@ body { background: var(--paper-2); }
 .st-wait   { color: #8C5A12; }
 .st-plan   { color: var(--vital); }
 .st-closed { color: var(--ink-faint); }
+.st-excl   { color: #7C1D1A; }
+
+/* protocol screening + prescribing */
+.pconsult {
+  display: inline-block; font-size: .7rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: #fff; background: var(--proof);
+  border-radius: 5px; padding: 3px 9px;
+}
+.prx {
+  display: inline-block; font-size: .7rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; border-radius: 5px; padding: 2px 9px;
+  border: 2px solid currentColor; color: var(--pen);
+}
+.prx--approved { color: var(--vital); }
+.prx-card {
+  border: 1.5px solid var(--rule); border-radius: 10px; padding: 16px 18px; margin-top: 12px;
+  background: var(--paper-2);
+}
+.prx-card h4 { font-family: var(--font-body); font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 10px; }
+.prx-card .drug { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; }
+.prx-card ul { margin: 8px 0 0; padding-left: 18px; font-size: .9rem; color: var(--ink-soft); }
+.prx-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.ladder-row { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 8px; margin-bottom: 8px; align-items: start; }
+.ladder-row button { border: 1px solid var(--rule); background: none; border-radius: 8px; cursor: pointer; padding: 10px 12px; color: var(--ink-soft); font-family: var(--font-body); }
+.ladder-row button:hover { border-color: var(--proof); color: var(--proof); }
+@media (max-width: 640px) { .ladder-row { grid-template-columns: 1fr; } }
 
 .pempty { text-align: center; color: var(--ink-faint); padding: 56px 20px; }
 .pempty .pen-note { display: block; margin-top: 8px; }

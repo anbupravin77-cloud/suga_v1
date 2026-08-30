@@ -118,7 +118,49 @@
       <div id="docEmpty"></div>
     </section>
 
-    <!-- ============ Section 3: All cases ============ -->
+    <!-- ============ Section 3: Prescribing protocol ============ -->
+    <section aria-labelledby="secProto">
+      <div class="ppg-sec"><h2 id="secProto">Prescribing protocol</h2></div>
+      <div class="card" id="protoCard">
+        <p class="ppg-loading" id="protoLoading">Loading…</p>
+        <div id="protoForm" hidden>
+          <p class="small" style="margin-top:0">
+            Set the drug and the dose ladder used by the standing protocol. When a consultation
+            comes in with no red flags, the system drafts the next prescription from this ladder &mdash;
+            a doctor still has to approve every one before it reaches the patient.
+          </p>
+          <div class="field">
+            <label class="label" for="pDrug">Drug</label>
+            <input class="input" id="pDrug" type="text" placeholder="e.g. the GLP-1 your clinic prescribes">
+          </div>
+          <div class="field">
+            <span class="label">Dose ladder <span class="small" style="text-transform:none;letter-spacing:0">(step 1 is the starting dose; each monthly review escalates one step)</span></span>
+            <div id="ladderRows"></div>
+            <button type="button" class="btn btn--ghost" id="btnAddStep" style="width:auto">+ Add dose step</button>
+          </div>
+          <div class="field">
+            <label class="label" for="pInterval">Review interval (days)</label>
+            <input class="input" id="pInterval" type="number" min="1" max="365" style="max-width:160px">
+          </div>
+          <div class="field">
+            <label class="label" for="pSide">Minor side effects printed on the prescription <span class="small" style="text-transform:none;letter-spacing:0">(one per line)</span></label>
+            <textarea class="input" id="pSide" rows="5"></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="pUrgent">Urgent advice</label>
+            <textarea class="input" id="pUrgent" rows="2"></textarea>
+          </div>
+          <div class="field">
+            <label class="label" for="pReview">Review instruction</label>
+            <textarea class="input" id="pReview" rows="2"></textarea>
+          </div>
+          <button type="button" class="btn" id="btnSaveProto">Save protocol</button>
+          <p class="small" id="protoMeta" style="margin:10px 0 0"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Section 4: All cases ============ -->
     <section aria-labelledby="secCases">
       <div class="ppg-sec"><h2 id="secCases">All cases</h2></div>
       <div class="pfilters">
@@ -162,7 +204,72 @@
     loadStats();
     loadCases(true);
     loadDoctors();
+    loadProtocol();
   }).catch(function () { /* guard redirects */ });
+
+  /* ---------- prescribing protocol ---------- */
+  var ladder = [];
+  function ladderRow(step, i) {
+    return '<div class="ladder-row" data-i="' + i + '">' +
+      '<input class="input" data-f="label" value="' + esc(step.label || '') + '" placeholder="Dose, e.g. step ' + (i + 1) + '" aria-label="Dose for step ' + (i + 1) + '">' +
+      '<input class="input" data-f="instructions" value="' + esc(step.instructions || '') + '" placeholder="Instructions (optional)" aria-label="Instructions for step ' + (i + 1) + '">' +
+      '<button type="button" data-rm="' + i + '" aria-label="Remove step ' + (i + 1) + '">Remove</button>' +
+      '</div>';
+  }
+  function renderLadder() {
+    var wrap = document.getElementById('ladderRows');
+    wrap.innerHTML = ladder.length
+      ? ladder.map(ladderRow).join('')
+      : '<p class="small" style="margin:0 0 10px">No dose steps yet — the system will not draft prescriptions until you add at least one.</p>';
+    wrap.querySelectorAll('input').forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        var i = Number(inp.closest('.ladder-row').getAttribute('data-i'));
+        ladder[i][inp.getAttribute('data-f')] = inp.value;
+      });
+    });
+    wrap.querySelectorAll('[data-rm]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        ladder.splice(Number(b.getAttribute('data-rm')), 1);
+        renderLadder();
+      });
+    });
+  }
+  function loadProtocol() {
+    Portal.api('/api/protocol').then(function (d) {
+      var p = d.protocol || {};
+      ladder = (p.doseLadder || []).map(function (s) { return { label: s.label, instructions: s.instructions }; });
+      document.getElementById('pDrug').value = p.drug || '';
+      document.getElementById('pInterval').value = p.reviewIntervalDays || 30;
+      document.getElementById('pSide').value = (p.minorSideEffects || []).join('\n');
+      document.getElementById('pUrgent').value = p.urgentAdvice || '';
+      document.getElementById('pReview').value = p.reviewInstruction || '';
+      renderLadder();
+      document.getElementById('protoLoading').hidden = true;
+      document.getElementById('protoForm').hidden = false;
+      document.getElementById('protoMeta').textContent = d.configured
+        ? 'Active' + (p.updatedBy ? ' · last updated by ' + p.updatedBy : '')
+        : 'Not configured yet — eligible consultations will wait for a doctor instead of being drafted.';
+    }).catch(function (e) {
+      document.getElementById('protoLoading').textContent = e.message;
+    });
+  }
+  document.getElementById('btnAddStep').addEventListener('click', function () {
+    ladder.push({ label: '', instructions: '' });
+    renderLadder();
+  });
+  document.getElementById('btnSaveProto').addEventListener('click', function () {
+    var body = {
+      drug: document.getElementById('pDrug').value.trim(),
+      doseLadder: ladder.filter(function (s) { return (s.label || '').trim(); }),
+      reviewIntervalDays: Number(document.getElementById('pInterval').value) || 30,
+      minorSideEffects: document.getElementById('pSide').value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean),
+      urgentAdvice: document.getElementById('pUrgent').value.trim(),
+      reviewInstruction: document.getElementById('pReview').value.trim()
+    };
+    Portal.api('/api/protocol', { method: 'PUT', body: body })
+      .then(function () { Portal.toast('Protocol saved'); loadProtocol(); })
+      .catch(function (e) { Portal.toast(e.message, true); });
+  });
 
   /* ---------- goal-driven controls (checkboxes + filter) ---------- */
   function buildGoalControls() {

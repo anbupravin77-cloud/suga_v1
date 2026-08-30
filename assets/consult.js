@@ -86,6 +86,13 @@
     units: 'metric',
     hCm: null,
     wKg: null,
+    /* clinical screening — protocol steps 3–5 */
+    screening: {
+      married: '', onOCP: '', pregnant: '',
+      antiepileptics: '', pancreatitis: '',
+      comorbid: [], diabetesComplications: [],
+      familyMTC: ''
+    },
     conditions: [],      // [{code, name}]
     noConditions: false,
     surgical: '',
@@ -118,6 +125,11 @@
         if (Object.prototype.hasOwnProperty.call(d, k)) { state[k] = d[k]; }
       }
       if (state.units !== 'imperial') { state.units = 'metric'; }
+      if (!state.screening || typeof state.screening !== 'object') {
+        state.screening = { married: '', onOCP: '', pregnant: '', antiepileptics: '', pancreatitis: '', comorbid: [], diabetesComplications: [], familyMTC: '' };
+      }
+      if (!isArr(state.screening.comorbid)) { state.screening.comorbid = []; }
+      if (!isArr(state.screening.diabetesComplications)) { state.screening.diabetesComplications = []; }
       if (!isArr(state.conditions)) { state.conditions = []; }
       if (!isArr(state.family)) { state.family = []; }
       if (!isArr(state.meds)) { state.meds = []; }
@@ -603,6 +615,17 @@
       setErr(inW, $('errW'), null);
     }
 
+    // clinical screening — every red-flag question must be answered
+    var required = ['antiepileptics', 'pancreatitis', 'familyMTC'];
+    if (state.sex === 'Female') { required = required.concat(['married', 'onOCP', 'pregnant']); }
+    required.forEach(function (k) {
+      var e = $(ERR_ID[k]);
+      if (!state.screening[k]) {
+        if (e) { e.hidden = false; }
+        fail(e || null);
+      } else if (e) { e.hidden = true; }
+    });
+
     // conditions stay optional — show the hint, never block the submit
     if (condNudge) { condNudge.hidden = !!(state.conditions.length || state.noConditions); }
 
@@ -680,6 +703,16 @@
       sexDetail: state.sex === 'Other' ? state.sexOther.trim() : '',
       height: { cm: Number(state.hCm) },
       weight: { kg: Number(state.wKg) },
+      screening: {
+        married: state.screening.married,
+        onOCP: state.screening.onOCP,
+        pregnant: state.screening.pregnant,
+        antiepileptics: state.screening.antiepileptics,
+        pancreatitis: state.screening.pancreatitis,
+        comorbid: state.screening.comorbid.slice(),
+        diabetesComplications: state.screening.diabetesComplications.slice(),
+        familyMTC: state.screening.familyMTC
+      },
       conditions: state.conditions.map(function (t) { return { code: t.code || null, name: t.name }; }),
       noConditions: state.noConditions,
       surgical: state.surgical.trim(),
@@ -911,13 +944,78 @@
       state.sex = b.getAttribute('data-sex');
       var sErr = $('errSex');
       if (sErr) { sErr.hidden = true; }
+      if (state.sex !== 'Female') {
+        // the female-only branch no longer applies — clear it so stale answers never submit
+        state.screening.married = '';
+        state.screening.onOCP = '';
+        state.screening.pregnant = '';
+      }
       renderSex();
+      renderScreening();
       touch();
     });
   });
   if (inSexOther) {
     inSexOther.addEventListener('input', function () { state.sexOther = inSexOther.value; touch(); });
   }
+
+  /* ---- clinical screening: yes/no segments, comorbid + complication chips ---- */
+  var ERR_ID = {
+    married: 'errMarried', onOCP: 'errOnOCP', pregnant: 'errPregnant',
+    antiepileptics: 'errAntiepileptics', pancreatitis: 'errPancreatitis', familyMTC: 'errFamilyMTC'
+  };
+  var scrBtns = form.querySelectorAll('[data-scr]');
+  function renderScreening() {
+    Array.prototype.forEach.call(scrBtns, function (b) {
+      var k = b.getAttribute('data-scr');
+      b.setAttribute('aria-pressed', state.screening[k] === b.getAttribute('data-val') ? 'true' : 'false');
+    });
+    var femaleBlock = $('femaleBlock');
+    if (femaleBlock) { femaleBlock.hidden = state.sex !== 'Female'; }
+    var complic = $('diabetesComplications');
+    if (complic) { complic.hidden = state.screening.comorbid.indexOf('type2-diabetes') === -1; }
+    Array.prototype.forEach.call(form.querySelectorAll('[data-comorbid]'), function (b) {
+      var on = state.screening.comorbid.indexOf(b.getAttribute('data-comorbid')) > -1;
+      b.classList.toggle('chip--on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    Array.prototype.forEach.call(form.querySelectorAll('[data-complic]'), function (b) {
+      var on = state.screening.diabetesComplications.indexOf(b.getAttribute('data-complic')) > -1;
+      b.classList.toggle('chip--on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  Array.prototype.forEach.call(scrBtns, function (b) {
+    b.addEventListener('click', function () {
+      var k = b.getAttribute('data-scr');
+      state.screening[k] = b.getAttribute('data-val');
+      var e = $(ERR_ID[k]);
+      if (e) { e.hidden = true; }
+      renderScreening();
+      touch();
+    });
+  });
+  function toggleIn(arr, v) {
+    var i = arr.indexOf(v);
+    if (i > -1) { arr.splice(i, 1); } else { arr.push(v); }
+  }
+  Array.prototype.forEach.call(form.querySelectorAll('[data-comorbid]'), function (b) {
+    b.addEventListener('click', function () {
+      toggleIn(state.screening.comorbid, b.getAttribute('data-comorbid'));
+      if (state.screening.comorbid.indexOf('type2-diabetes') === -1) {
+        state.screening.diabetesComplications = [];
+      }
+      renderScreening();
+      touch();
+    });
+  });
+  Array.prototype.forEach.call(form.querySelectorAll('[data-complic]'), function (b) {
+    b.addEventListener('click', function () {
+      toggleIn(state.screening.diabetesComplications, b.getAttribute('data-complic'));
+      renderScreening();
+      touch();
+    });
+  });
 
   // step 3 — units + body
   var unitBtns = form.querySelectorAll('[data-units]');
@@ -1031,6 +1129,7 @@
     if (inPhone) { inPhone.value = state.phone; }
     if (inAge) { inAge.value = state.age; }
     renderSex();
+    renderScreening();
     if (inSexOther) { inSexOther.value = state.sexOther; }
     renderBodyInputs();
     if (condPicker) { condPicker.renderTags(); condPicker.setDisabled(state.noConditions, true); }

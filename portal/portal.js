@@ -58,6 +58,7 @@
     in_review:        { label: 'In review',        cls: 'st-review' },
     awaiting_patient: { label: 'Awaiting patient', cls: 'st-wait' },
     plan_sent:        { label: 'Plan sent',        cls: 'st-plan' },
+    excluded:         { label: 'Excluded',         cls: 'st-excl' },
     closed:           { label: 'Closed',           cls: 'st-closed' },
   };
   P.stamp = function (status) {

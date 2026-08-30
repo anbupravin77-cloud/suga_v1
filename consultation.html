@@ -181,6 +181,34 @@
                       <label class="label" for="inSexOther">How do you describe your sex? <span class="small" style="text-transform:none;letter-spacing:0">(optional)</span></label>
                       <input class="input" id="inSexOther" name="sexOther" type="text" placeholder="In your own words">
                     </div>
+
+                    <div id="femaleBlock" hidden>
+                      <div class="field pg-seg-field">
+                        <span class="label" id="lblMarried">Are you married? <span class="req" aria-hidden="true">*</span></span>
+                        <div class="seg" role="group" aria-labelledby="lblMarried">
+                          <button type="button" data-scr="married" data-val="yes" aria-pressed="false">Yes</button>
+                          <button type="button" data-scr="married" data-val="no" aria-pressed="false">No</button>
+                        </div>
+                        <p class="err-msg" id="errMarried" hidden>Please answer this question.</p>
+                      </div>
+                      <div class="field pg-seg-field">
+                        <span class="label" id="lblOcp">Are you using contraception with the pill (OCP)? <span class="req" aria-hidden="true">*</span></span>
+                        <div class="seg" role="group" aria-labelledby="lblOcp">
+                          <button type="button" data-scr="onOCP" data-val="yes" aria-pressed="false">Yes</button>
+                          <button type="button" data-scr="onOCP" data-val="no" aria-pressed="false">No</button>
+                        </div>
+                        <p class="err-msg" id="errOnOCP" hidden>Please answer this question.</p>
+                      </div>
+                      <div class="field pg-seg-field">
+                        <span class="label" id="lblPreg">Are you pregnant, or trying to become pregnant? <span class="req" aria-hidden="true">*</span></span>
+                        <div class="seg" role="group" aria-labelledby="lblPreg">
+                          <button type="button" data-scr="pregnant" data-val="yes" aria-pressed="false">Yes</button>
+                          <button type="button" data-scr="pregnant" data-val="no" aria-pressed="false">No</button>
+                        </div>
+                        <p class="err-msg" id="errPregnant" hidden>Please answer this question.</p>
+                        <p class="hint">This treatment is not given during pregnancy, so your doctor needs to know.</p>
+                      </div>
+                    </div>
                   </div>
 
                   <p class="small pg-note">All three start with the same consultation &mdash; your doctor tailors everything after this.</p>
@@ -230,6 +258,54 @@
                 <section class="pg-sec" id="sec3" aria-labelledby="secH3">
                   <h2 class="pg-step-h" id="secH3"><span class="n">03</span> Medical history</h2>
                   <p class="pg-step-sub">This is where your doctor earns their keep &mdash; the more complete, the safer your plan.</p>
+
+                  <div class="field pg-seg-field">
+                    <span class="label" id="lblAntiep">Are you taking any treatment for fits or epilepsy? <span class="req" aria-hidden="true">*</span></span>
+                    <div class="seg" role="group" aria-labelledby="lblAntiep">
+                      <button type="button" data-scr="antiepileptics" data-val="yes" aria-pressed="false">Yes</button>
+                      <button type="button" data-scr="antiepileptics" data-val="no" aria-pressed="false">No</button>
+                    </div>
+                    <p class="err-msg" id="errAntiepileptics" hidden>Please answer this question.</p>
+                  </div>
+
+                  <div class="field pg-seg-field">
+                    <span class="label" id="lblPanc">Have you ever had pancreatitis, or recurrent abdominal pain? <span class="req" aria-hidden="true">*</span></span>
+                    <div class="seg" role="group" aria-labelledby="lblPanc">
+                      <button type="button" data-scr="pancreatitis" data-val="yes" aria-pressed="false">Yes</button>
+                      <button type="button" data-scr="pancreatitis" data-val="no" aria-pressed="false">No</button>
+                    </div>
+                    <p class="err-msg" id="errPancreatitis" hidden>Please answer this question.</p>
+                  </div>
+
+                  <div class="field">
+                    <span class="label" id="lblComorbid">Do you have any of these? <span class="small" style="text-transform:none;letter-spacing:0">(select any that apply)</span></span>
+                    <div class="pg-chips" role="group" aria-labelledby="lblComorbid" id="comorbidChips">
+                      <button type="button" class="chip" data-comorbid="type2-diabetes" aria-pressed="false">Type 2 diabetes</button>
+                      <button type="button" class="chip" data-comorbid="hypertension" aria-pressed="false">High blood pressure</button>
+                      <button type="button" class="chip" data-comorbid="hyperlipidemia" aria-pressed="false">High cholesterol</button>
+                    </div>
+                  </div>
+
+                  <div class="field" id="diabetesComplications" hidden>
+                    <span class="label" id="lblComplic">Has your diabetes affected any of these? <span class="small" style="text-transform:none;letter-spacing:0">(select any that apply)</span></span>
+                    <div class="pg-chips" role="group" aria-labelledby="lblComplic" id="complicChips">
+                      <button type="button" class="chip" data-complic="kidney" aria-pressed="false">Kidney problems</button>
+                      <button type="button" class="chip" data-complic="retinopathy" aria-pressed="false">Eyesight (retinopathy)</button>
+                      <button type="button" class="chip" data-complic="heart-attack" aria-pressed="false">Heart attack</button>
+                      <button type="button" class="chip" data-complic="stroke" aria-pressed="false">Stroke</button>
+                    </div>
+                  </div>
+
+                  <div class="field pg-seg-field">
+                    <span class="label" id="lblMtc">Has anyone in your family had medullary thyroid cancer? <span class="req" aria-hidden="true">*</span></span>
+                    <div class="seg" role="group" aria-labelledby="lblMtc">
+                      <button type="button" data-scr="familyMTC" data-val="yes" aria-pressed="false">Yes</button>
+                      <button type="button" data-scr="familyMTC" data-val="no" aria-pressed="false">No</button>
+                      <button type="button" data-scr="familyMTC" data-val="unknown" aria-pressed="false">Not sure</button>
+                    </div>
+                    <p class="err-msg" id="errFamilyMTC" hidden>Please answer this question.</p>
+                  </div>
+
                   <div class="field">
                     <label class="label" for="condInput">Current medical conditions</label>
                     <div class="tagbox">

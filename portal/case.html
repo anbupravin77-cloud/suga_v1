@@ -193,11 +193,63 @@
     return out;
   }
 
+  var SCR_LABEL = {
+    married: 'Married', onOCP: 'On oral contraception (OCP)', pregnant: 'Pregnant',
+    antiepileptics: 'Treatment for fits / epilepsy', pancreatitis: 'Pancreatitis or recurrent abdominal pain',
+    familyMTC: 'Family history of medullary thyroid cancer'
+  };
+  var COMORBID_LABEL = {
+    'type2-diabetes': 'Type 2 diabetes', hypertension: 'Hypertension', hyperlipidemia: 'Hyperlipidemia'
+  };
+  var COMPLIC_LABEL = {
+    kidney: 'Kidney problems', retinopathy: 'Visual problems (retinopathy)',
+    'heart-attack': 'Heart attack', stroke: 'Stroke'
+  };
+  var ANS = { yes: 'Yes', no: 'No', unknown: 'Not sure' };
+
+  function screeningHtml(c) {
+    var s = (c.intake || {}).screening;
+    if (!s) return '';
+    var a = c.assessment || {};
+    var out = '';
+
+    if (a.excluded) {
+      out += '<div class="pwarn"><b>Excluded from treatment — ' + esc(a.excluded.label) + '.</b> ' +
+        esc(a.excluded.why) + '</div>';
+    } else if (a.requiresPhysician) {
+      out += '<div class="pwarn"><b>Physician consult required.</b><ul style="margin:6px 0 0;padding-left:18px">' +
+        (a.flags || []).map(function (f) { return '<li>' + esc(f.label) + ' — ' + esc(f.why) + '</li>'; }).join('') +
+        '</ul></div>';
+    }
+
+    var order = ['pregnant', 'onOCP', 'married', 'antiepileptics', 'pancreatitis', 'familyMTC'];
+    var rows = [];
+    order.forEach(function (k) {
+      if (!s[k]) return;
+      var flagged = (k === 'pregnant' && s[k] === 'yes') ||
+        (k !== 'married' && (s[k] === 'yes' || s[k] === 'unknown'));
+      rows.push([SCR_LABEL[k], (flagged ? '<b style="color:var(--proof)">' : '<span>') +
+        esc(ANS[s[k]] || s[k]) + (flagged ? '</b>' : '</span>')]);
+    });
+    if ((s.comorbid || []).length) {
+      rows.push(['Co-morbidities', s.comorbid.map(function (k) { return esc(COMORBID_LABEL[k] || k); }).join(', ')]);
+    }
+    if ((s.diabetesComplications || []).length) {
+      rows.push(['Diabetes complications', '<b style="color:var(--proof)">' +
+        s.diabetesComplications.map(function (k) { return esc(COMPLIC_LABEL[k] || k); }).join(', ') + '</b>']);
+    }
+    if (!rows.length) return out;
+    return out + section('Protocol screening', kv(rows));
+  }
+
   function chartHtml(c) {
     var i = c.intake || {};
     var out = '';
 
-    // goal-specific contraindications up top — the first thing a doctor must see
+    // protocol screening result first — flags and exclusions outrank everything else
+    out += screeningHtml(c);
+
+    // goal-specific contraindications
     goalWarnings(i).forEach(function (w) { out += '<div class="pwarn">' + w + '</div>'; });
 
     // Identity + how to reach the patient
@@ -330,6 +382,73 @@
         '<button type="button" class="btn" id="btnPlan">Record plan &amp; mark sent</button>';
     }
 
+    // PRESCRIPTION (protocol step 6)
+    out += '<hr class="ppg-div"><h3>Prescription</h3>';
+    var a = c.assessment || {};
+    var rx = c.prescription;
+    if (a.excluded) {
+      out += '<div class="ppg-muted">No prescription can be issued — patient excluded (' +
+        esc(a.excluded.label) + ').</div>';
+    } else if (rx) {
+      out += '<div class="prx-card">' +
+        '<h4>' + (rx.status === 'approved' ? 'Approved' : 'Draft — needs your approval') +
+        ' · prescription #' + esc(rx.number) + '</h4>' +
+        '<div class="drug">' + esc(rx.drug) + ' &mdash; ' + esc(rx.dose) + '</div>' +
+        (rx.instructions ? '<div class="ppg-small">' + esc(rx.instructions) + '</div>' : '') +
+        '<ul>' + (rx.minorSideEffects || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
+        '<div class="ppg-small" style="margin-top:8px">' + esc(rx.urgentAdvice || '') + '</div>' +
+        '<div class="ppg-small">' + esc(rx.reviewInstruction || '') + '</div>' +
+        '<div class="ppg-muted ppg-small" style="margin-top:8px">' + esc(rx.reason || '') + '</div>' +
+        (rx.status === 'approved'
+          ? '<div class="ppg-muted ppg-small">Approved by ' + esc(rx.approvedBy) + ' · ' + Portal.ago(rx.approvedAt) + '</div>'
+          : '') +
+        '</div>';
+      if (rx.status === 'draft') {
+        out += '<div class="prx-actions">' +
+          '<button type="button" class="btn" id="btnRxApprove">Approve &amp; issue</button>' +
+          '<button type="button" class="btn btn--ghost" style="width:auto" id="btnRxDiscard">Discard</button>' +
+          '</div>' +
+          '<div class="ppg-muted ppg-small">Nothing reaches the patient until you approve it.</div>';
+      }
+    } else {
+      out += '<div class="ppg-muted">No prescription drafted.</div>' +
+        '<button type="button" class="btn btn--ghost" id="btnRxDraft">Draft from protocol</button>';
+    }
+
+    // MONTHLY REVIEW (protocol steps 6–7)
+    if (rx && rx.status === 'approved') {
+      out += '<hr class="ppg-div"><h3>Monthly review</h3>';
+      var reviews = (c.reviews || []).slice().sort(function (x, y) { return x.at < y.at ? 1 : -1; });
+      if (reviews.length) {
+        out += '<div class="ppg-notes">' + reviews.map(function (r) {
+          var verdict = r.outcome === 'physician-consult' ? 'severe symptoms — dosage review'
+            : r.outcome === 'dose-escalated' ? 'no severe symptoms — dose escalated'
+            : 'at final dose step';
+          return '<div class="pnote-item"><div class="by">Review ' + esc(r.n) + ' · ' + esc(r.by) + ' · ' + Portal.ago(r.at) +
+            '</div><div>' + esc(verdict) + '</div>' +
+            (r.weightKg || r.pulse || r.bp
+              ? '<div class="ppg-small ppg-muted">' +
+                (r.weightKg ? 'Weight ' + esc(r.weightKg) + ' kg · ' : '') +
+                (r.pulse ? 'Pulse ' + esc(r.pulse) + ' · ' : '') +
+                (r.bp ? 'BP ' + esc(r.bp) : '') + '</div>'
+              : '') +
+            (r.notes ? '<div class="ppg-pre ppg-small">' + esc(r.notes) + '</div>' : '') +
+            '</div>';
+        }).join('') + '</div>';
+      }
+      out += '<div class="ppg-small" style="margin-bottom:6px">Record this month&rsquo;s review:</div>' +
+        '<div class="ppg-row"><input class="input" id="rvWeight" type="number" step="0.1" placeholder="Weight kg" aria-label="Weight in kg">' +
+        '<input class="input" id="rvPulse" type="number" placeholder="Pulse" aria-label="Pulse"></div>' +
+        '<input class="input" id="rvBp" type="text" placeholder="Blood pressure, e.g. 128/82" aria-label="Blood pressure" style="margin-top:8px">' +
+        '<label class="ppg-check" style="display:flex;gap:10px;align-items:center;margin-top:10px">' +
+        '<input type="checkbox" id="rvSympt"> Any abdominal symptoms?</label>' +
+        '<label class="ppg-check" id="rvSevereWrap" hidden style="display:flex;gap:10px;align-items:center;margin-top:6px">' +
+        '<input type="checkbox" id="rvSevere"> Are they severe?</label>' +
+        '<textarea class="input" id="rvNotes" placeholder="Review notes (optional)" aria-label="Review notes" style="margin-top:8px"></textarea>' +
+        '<button type="button" class="btn btn--ghost" id="btnReview">Record review</button>' +
+        '<div class="ppg-muted ppg-small">No severe symptoms escalates the dose and drafts the next prescription. Severe symptoms flag the case for a dosage review instead.</div>';
+    }
+
     // AUDIT
     out += '<hr class="ppg-div"><h3>Audit trail</h3>';
     var audit = (c.audit || []).slice().sort(function (a, b) { return a.at < b.at ? 1 : -1; });
@@ -411,6 +530,56 @@
           .catch(function (e) { Portal.toast(e.message, true); refetch(); });
       });
     }
+
+    /* ---- prescription (protocol step 6) ---- */
+    function rxAction(body, okMsg, confirmMsg) {
+      if (confirmMsg && !window.confirm(confirmMsg)) return;
+      Portal.api('/api/cases/' + encodeURIComponent(caseId) + '/prescription', { method: 'POST', body: body })
+        .then(function (d) { render(unwrap(d)); Portal.toast(okMsg); })
+        .catch(function (e) { Portal.toast(e.message, true); });
+    }
+    if (el('btnRxDraft')) el('btnRxDraft').addEventListener('click', function () {
+      rxAction({ action: 'draft' }, 'Prescription drafted');
+    });
+    if (el('btnRxApprove')) el('btnRxApprove').addEventListener('click', function () {
+      var rx = c.prescription || {};
+      rxAction({ action: 'approve' }, 'Prescription approved',
+        'Approve and issue ' + rx.drug + ' ' + rx.dose + ' for ' + ((c.intake || {}).name || 'this patient') + '?');
+    });
+    if (el('btnRxDiscard')) el('btnRxDiscard').addEventListener('click', function () {
+      rxAction({ action: 'discard' }, 'Draft discarded', 'Discard this draft prescription?');
+    });
+
+    /* ---- monthly review (protocol steps 6–7) ---- */
+    var sympt = el('rvSympt'), severeWrap = el('rvSevereWrap');
+    if (sympt && severeWrap) {
+      sympt.addEventListener('change', function () {
+        severeWrap.hidden = !sympt.checked;
+        if (!sympt.checked && el('rvSevere')) el('rvSevere').checked = false;
+      });
+    }
+    if (el('btnReview')) el('btnReview').addEventListener('click', function () {
+      var body = {
+        abdominalSymptoms: !!(sympt && sympt.checked),
+        severe: !!(el('rvSevere') && el('rvSevere').checked),
+        weightKg: el('rvWeight') && el('rvWeight').value ? Number(el('rvWeight').value) : null,
+        pulse: el('rvPulse') && el('rvPulse').value ? Number(el('rvPulse').value) : null,
+        bp: el('rvBp') ? el('rvBp').value : '',
+        notes: el('rvNotes') ? el('rvNotes').value : ''
+      };
+      Portal.api('/api/cases/' + encodeURIComponent(caseId) + '/review', { method: 'POST', body: body })
+        .then(function (d) {
+          var updated = unwrap(d);
+          render(updated);
+          var last = (updated.reviews || [])[(updated.reviews || []).length - 1] || {};
+          Portal.toast(last.outcome === 'physician-consult'
+            ? 'Review recorded — flagged for dosage review'
+            : last.outcome === 'dose-escalated'
+              ? 'Review recorded — dose escalated, next prescription drafted'
+              : 'Review recorded');
+        })
+        .catch(function (e) { Portal.toast(e.message, true); });
+    });
   }
 })();
 </script>

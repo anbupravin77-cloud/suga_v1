@@ -149,6 +149,10 @@
 
     var who = '<div class="who">' + esc(name) + ' ' + Portal.stamp(c.status) +
       (c.priority ? ' <span class="pprio">PRIORITY</span>' : '') +
+      (s.excluded ? ' <span class="pconsult">Excluded</span>'
+        : s.requiresPhysician ? ' <span class="pconsult">Physician consult</span>' : '') +
+      (s.rxStatus === 'draft' ? ' <span class="prx">Rx draft #' + esc(s.rxNumber || 1) + '</span>'
+        : s.rxStatus === 'approved' ? ' <span class="prx prx--approved">Rx #' + esc(s.rxNumber || 1) + '</span>' : '') +
       flags.map(function (f) { return ' <span class="pflag">' + esc(f) + '</span>'; }).join('') +
       '</div>';
 
