@@ -77,9 +77,12 @@
 
   var state = {
     goal: '',
+    firstName: '',
+    lastName: '',
     name: '',
     email: '',
     phone: '',
+    dob: '',
     age: '',
     sex: '',
     sexOther: '',
@@ -157,6 +160,24 @@
     return { ft: ft, inch: inch };
   }
   function round1(n) { return Math.round(n * 10) / 10; }
+
+  function syncNameFromParts() {
+    state.name = (state.firstName + ' ' + state.lastName).replace(/\s+/g, ' ').trim();
+  }
+  function ageFromDob(dobStr) {
+    if (!dobStr) { return ''; }
+    var d = new Date(dobStr + 'T00:00:00');
+    if (isNaN(d.getTime())) { return ''; }
+    var today = new Date();
+    var years = today.getFullYear() - d.getFullYear();
+    var m = today.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < d.getDate())) { years--; }
+    return years;
+  }
+  function syncAgeFromDob() {
+    var a = ageFromDob(state.dob);
+    state.age = a === '' ? '' : String(a);
+  }
 
   var H_MIN = 100, H_MAX = 250;   // cm
   var W_MIN = 30, W_MAX = 350;    // kg
@@ -366,7 +387,7 @@
   /* ---------------- element handles ---------------- */
 
   var btnSubmit = $('btnSubmit');
-  var inName = $('inName'), inAge = $('inAge'), inSexOther = $('inSexOther');
+  var inFirstName = $('inFirstName'), inLastName = $('inLastName'), inDob = $('inDob'), inSexOther = $('inSexOther');
   var inEmail = $('inEmail'), inPhone = $('inPhone');
   var sexOtherField = $('sexOtherField');
   var inHcm = $('inHcm'), inHft = $('inHft'), inHin = $('inHin'), inW = $('inW');
@@ -559,9 +580,13 @@
       fail($('sec1'));
     } else if (gErr) { gErr.hidden = true; }
 
-    var name = state.name.replace(/\s+/g, ' ').trim();
-    if (name.length < 2) { setErr(inName, $('errName'), 'Please enter your full name.'); fail(inName); }
-    else { setErr(inName, $('errName'), null); }
+    var firstName = state.firstName.trim();
+    if (firstName.length < 1) { setErr(inFirstName, $('errFirstName'), 'Please enter your first name.'); fail(inFirstName); }
+    else { setErr(inFirstName, $('errFirstName'), null); }
+
+    var lastName = state.lastName.trim();
+    if (lastName.length < 1) { setErr(inLastName, $('errLastName'), 'Please enter your last name.'); fail(inLastName); }
+    else { setErr(inLastName, $('errLastName'), null); }
 
     var email = state.email.trim();
     if (!email) { setErr(inEmail, $('errEmail'), 'Please enter your email address.'); fail(inEmail); }
@@ -577,12 +602,12 @@
       fail(inPhone);
     } else { setErr(inPhone, $('errPhone'), null); }
 
-    var ageRaw = inAge ? inAge.value.trim() : '';
-    var age = parseInt(ageRaw, 10);
-    if (ageRaw === '' || isNaN(age)) { setErr(inAge, $('errAge'), 'Please enter your age.'); fail(inAge); }
-    else if (age < 18) { setErr(inAge, $('errAge'), 'Suga.health treats adults 18 and over.'); fail(inAge); }
-    else if (age > 100) { setErr(inAge, $('errAge'), 'That age doesn’t look right — please double-check.'); fail(inAge); }
-    else { setErr(inAge, $('errAge'), null); }
+    var dobRaw = inDob ? inDob.value.trim() : '';
+    var age = ageFromDob(dobRaw);
+    if (dobRaw === '' || age === '') { setErr(inDob, $('errDob'), 'Please enter your date of birth.'); fail(inDob); }
+    else if (age < 18) { setErr(inDob, $('errDob'), 'Suga.health treats adults 18 and over.'); fail(inDob); }
+    else if (age > 100) { setErr(inDob, $('errDob'), 'That date of birth doesn’t look right — please double-check.'); fail(inDob); }
+    else { setErr(inDob, $('errDob'), null); }
 
     var sErr = $('errSex');
     if (!state.sex) { if (sErr) { sErr.hidden = false; } fail(sErr); }
@@ -904,10 +929,19 @@
   });
 
   // step 2
-  if (inName) {
-    inName.addEventListener('input', function () {
-      state.name = inName.value;
-      if (state.name.trim().length >= 2) { setErr(inName, $('errName'), null); }
+  if (inFirstName) {
+    inFirstName.addEventListener('input', function () {
+      state.firstName = inFirstName.value;
+      syncNameFromParts();
+      if (state.firstName.trim().length >= 1) { setErr(inFirstName, $('errFirstName'), null); }
+      touch();
+    });
+  }
+  if (inLastName) {
+    inLastName.addEventListener('input', function () {
+      state.lastName = inLastName.value;
+      syncNameFromParts();
+      if (state.lastName.trim().length >= 1) { setErr(inLastName, $('errLastName'), null); }
       touch();
     });
   }
@@ -925,9 +959,11 @@
       touch();
     });
   }
-  if (inAge) {
-    inAge.addEventListener('input', function () {
-      state.age = inAge.value;
+  if (inDob) {
+    inDob.addEventListener('input', function () {
+      state.dob = inDob.value;
+      syncAgeFromDob();
+      if (state.dob) { setErr(inDob, $('errDob'), null); }
       touch();
     });
   }
@@ -1124,10 +1160,13 @@
 
   function syncUI() {
     renderGoal();
-    if (inName) { inName.value = state.name; }
+    syncNameFromParts();
+    syncAgeFromDob();
+    if (inFirstName) { inFirstName.value = state.firstName; }
+    if (inLastName) { inLastName.value = state.lastName; }
     if (inEmail) { inEmail.value = state.email; }
     if (inPhone) { inPhone.value = state.phone; }
-    if (inAge) { inAge.value = state.age; }
+    if (inDob) { inDob.value = state.dob; }
     renderSex();
     renderScreening();
     if (inSexOther) { inSexOther.value = state.sexOther; }

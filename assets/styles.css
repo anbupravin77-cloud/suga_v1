@@ -150,10 +150,8 @@ h2.display { font-size: clamp(1.9rem, 3.6vw, 2.9rem); }
 .brand-word {
   font-family: var(--font-display); font-weight: 800; font-stretch: 110%;
   font-size: 1.45rem; color: var(--ink); letter-spacing: -.02em;
-  text-decoration: underline dotted var(--proof);
-  text-decoration-thickness: .08em; text-underline-offset: .16em;
 }
-.brand-tag { font-family: var(--font-pen); font-weight: 600; font-size: .95rem; color: var(--pen); }
+.brand-tag { font-family: var(--font-pen); font-weight: 600; font-size: 1.7rem; color: var(--pen); letter-spacing: .06em; }
 .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; margin: 0; padding: 0; }
 .nav-links a {
   color: var(--ink-soft); text-decoration: none; font-weight: 500; font-size: .95rem;
